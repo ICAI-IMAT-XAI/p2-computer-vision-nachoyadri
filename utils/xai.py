@@ -13,18 +13,16 @@ def saliency_map(
     Returns:
         torch.Tensor: The saliency map of shape (28, 28).
     """
-    # compute saliency map
     model.eval()
-    img.requires_grad_()
+    img: torch.Tensor = img.clone().detach().requires_grad_(True)
 
     logits = model(img)
+    score = logits[0, target_class]
+    score.backward()
 
-    loss = F.cross_entropy(logits, torch.tensor([target_class], device=img.device))
-    loss.backward()
+    sal = img.grad.detach().abs()[0, 0]
 
-    saliency, _ = img.grad.data.abs().max(dim=1)
-    saliency = saliency.reshape(28, 28)
-    return saliency
+    return sal
 
 
 def targeted_fgsm(
