@@ -14,7 +14,7 @@ def saliency_map(
         torch.Tensor: The saliency map of shape (28, 28).
     """
     model.eval()
-    img: torch.Tensor = img.clone().detach().requires_grad_(True)
+    img = img.clone().detach().requires_grad_(True)
 
     logits = model(img)
     score = logits[0, target_class]
