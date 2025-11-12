@@ -2,7 +2,7 @@ import torch
 import torch.nn.functional as F
 
 
-def calculate_saliency_map(
+def saliency_map(
     model: torch.nn.Module, img: torch.Tensor, target_class: int
 ) -> torch.Tensor:
     """Calculate the saliency map for a given image and target class.
