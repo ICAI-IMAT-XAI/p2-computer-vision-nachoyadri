@@ -11,3 +11,5 @@ data/
 .venv
 
 .DS_Store
+
+notebook/challenge.pdf

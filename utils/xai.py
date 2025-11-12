@@ -45,23 +45,27 @@ def integrated_gradients(
         (torch.Tensor): tensor of same shape as input, with feature attributions.
     """
 
-    model.eval()
     if baseline is None:
         baseline = torch.zeros_like(img)
 
-    alphas = torch.linspace(0, 1, steps).unsqueeze(1).to(img.device)
-    scaled_inputs = baseline + alphas * (img - baseline)
-
+    # Scale inputs and compute gradients
+    scaled_inputs = [
+        baseline + (float(i) / steps) * (img - baseline) for i in range(steps + 1)
+    ]
     grads = []
+    model.eval()
     for scaled_input in scaled_inputs:
-        scaled_input = scaled_input.unsqueeze(0).requires_grad_(True)
+        scaled_input = scaled_input.clone().detach().requires_grad_(True)
         output = model(scaled_input)
-        target = output[0, target_class]
+        score = output[0, target_class]
         model.zero_grad()
-        target.backward(retain_graph=True)
-        grads.append(scaled_input.grad.detach())
+        score.backward()
+        grad = scaled_input.grad.detach()
+        grads.append(grad)
 
-    grads = torch.stack(grads).mean(dim=0)
-    attributions = (img - baseline) * grads
+    # Approximate the integral using the trapezoidal rule
+    grads = torch.stack(grads)  # Shape: (steps + 1, 1, C, H, W) or (steps + 1, 1, D)
+    avg_grads = (grads[:-1] + grads[1:]) / 2.0
+    integrated_grads = (img - baseline) * avg_grads.mean(dim=0)
 
-    return attributions
+    return integrated_grads.squeeze()
