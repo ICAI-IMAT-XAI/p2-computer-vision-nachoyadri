@@ -37,7 +37,7 @@ def integrated_gradients(
     target_class: int,
     baseline: torch.Tensor = None,
     steps: int = 50,
-):
+) -> torch.Tensor:
     """
     Compute Integrated Gradients for a given input and target class.
 
